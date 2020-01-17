@@ -139,6 +139,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             Log.d("error",Log.getStackTraceString(e));
         }
-        textView.setText("" + 100 + "%");
+        //textView.setText("" + 100 + "%");
     }
 }
