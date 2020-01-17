@@ -2,6 +2,7 @@ package com.christian130.rxjava;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ProgressBar;
@@ -28,15 +29,16 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar seekBar;
     private int progressinformation;
     private AtomicInteger counter;
+    private float g;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textView = (TextView) findViewById(R.id.textView);
-        progressBar = (ProgressBar) findViewById(R.id.progress_circular);
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
+        textView = findViewById(R.id.textView);
+        progressBar = findViewById(R.id.progress_circular);
+        seekBar = findViewById(R.id.seekBar);
         counter = new AtomicInteger();
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -86,14 +88,20 @@ public class MainActivity extends AppCompatActivity {
             public synchronized void onNext(Task task) {
                 //progressBar.setProgress(progress);
                 int n = counter.incrementAndGet();
-                float g = (((float) n / 5) * 100);
+                g = (((float) n / 5) * 100);
 
 
                 Log.d("OnNext", "called from OnNext()" + Thread.currentThread().getName());
-                Log.d("Counting", "this is what i've counted" + Integer.toString(n));
-                Log.d("percentage", "this is the percentage" + Integer.toString((int) g));
-                progressBar.setProgress((int) g);
-                textView.setText("" + (int) g + "%");
+                Log.d("Counting", "this is what i've counted" + n);
+                Log.d("percentage", "this is the percentage" + (int) g);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setProgress((int) g);
+                        textView.setText("" + (int) g + "%");
+                    }
+                });
+
 
 
                 Log.d("OnNext: ", "called from OnNext() with a POJO Task named task" + task.getDescription());
@@ -133,12 +141,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    private synchronized void launch(){
-        try {
-            Thread.sleep(6000);
-        } catch (InterruptedException e) {
-            Log.d("error",Log.getStackTraceString(e));
-        }
-        //textView.setText("" + 100 + "%");
+
+    @SuppressLint("SetTextI18n")
+    private synchronized void launch() {
+
+
+        Integer integer = progressBar.getProgress();
+        Log.d("integer", String.valueOf(integer));
+        /*if (integer < 100) {
+            try {
+                Thread.sleep(6000);
+                textView.setText("" + 100 + "%");
+                progressBar.setProgress(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }*/
+        //
     }
 }
