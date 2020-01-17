@@ -13,9 +13,12 @@ import com.christian130.rxjava.models.Task;
 import com.christian130.rxjava.utils.DataSource;
 
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -57,107 +60,85 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        final List<Task> taskList = DataSource.createTaskList();
+
         Observable<Task> taskObservable = Observable
-                .fromIterable(DataSource.createTaskList())
-                .subscribeOn(Schedulers.io())
-                .filter(new Predicate<Task>() {
+                .create(new ObservableOnSubscribe<Task>() {
                     @Override
-                    public boolean test(Task task) throws Exception {
-                        Log.d("filtro", "a filter was added so the current task object is" + Thread.currentThread().getName());
-                        try {
-                            Thread.sleep(3000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        if (task.isComplete()) {
+                    public void subscribe(ObservableEmitter<Task> emitter) throws Exception {
+                        for (int c = 0; c < taskList.size(); c++) {
+                            Log.d("estoy",String.valueOf(c)+"vs"+String.valueOf(taskList.size()));
+                            if (!emitter.isDisposed()) {
+                                try {
+                                    Thread.sleep(3000);
+                                    if (taskList.get(c).isComplete()){
+                                        emitter.onNext(taskList.get(c));
+                                    }
+                                    if ((taskList.size()-1)==c){
+                                        try {
+                                            Thread.sleep(3000);
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Log.d("hostia","hostia he llegado al ultimo");
+                                                    textView.setText("100 %");
+                                                    progressBar.setProgress(100);
+                                                }
+                                            });
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
 
 
+                                    }
+
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                                //int x=counter.incrementAndGet();
+                                //float s=(((float) x / 5) * 100);
+                                //textView.setText(" "+s+" %");
+                            }
+
                         }
-                        return task.isComplete();
+                        if (!emitter.isDisposed()) {
+                            emitter.onComplete();
+                        }
+
                     }
                 })
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
         taskObservable.subscribe(new Observer<Task>() {
             @Override
-            public synchronized void onSubscribe(Disposable d) {
-                Log.d("obSubscribeMethod", "called on subscribe with Disposable object");
+            public void onSubscribe(Disposable d) {
 
             }
 
             @Override
-            public synchronized void onNext(Task task) {
-                //progressBar.setProgress(progress);
-                int n = counter.incrementAndGet();
-                g = (((float) n / 5) * 100);
-
-
-                Log.d("OnNext", "called from OnNext()" + Thread.currentThread().getName());
-                Log.d("Counting", "this is what i've counted" + n);
-                Log.d("percentage", "this is the percentage" + (int) g);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setProgress((int) g);
-                        textView.setText("" + (int) g + "%");
-                    }
-                });
-
-
-
-                Log.d("OnNext: ", "called from OnNext() with a POJO Task named task" + task.getDescription());
-
+            public void onNext(Task task) {
+                Log.d("estoy en el onNext()", task.getDescription());
+                int x=counter.incrementAndGet();
+                Log.d("counter",String.valueOf(x));
+                float s=(((float) x / taskList.size()) * 100);
+                progressBar.setProgress((int)s);
+                textView.setText(" "+(int)s+" %");
 
             }
 
             @Override
-            public synchronized void onError(Throwable e) {
-                Log.d("OnError()", Log.getStackTraceString(e));
+            public void onError(Throwable e) {
 
             }
 
             @Override
-            public synchronized void onComplete() {
-
-               /* runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(6000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        // Stuff that updates the UI
-                       // progressBar.setProgress(100);
-                       // textView.setText("" + 100 + "%");
-
-                    }
-                });
-*/
-                //textView.setText("" + 100 + "%");
-                launch();
-                Log.d("OnComplete()", "everything is completed");
+            public void onComplete() {
 
             }
         });
+
     }
 
-    @SuppressLint("SetTextI18n")
-    private synchronized void launch() {
-
-
-        Integer integer = progressBar.getProgress();
-        Log.d("integer", String.valueOf(integer));
-        /*if (integer < 100) {
-            try {
-                Thread.sleep(6000);
-                textView.setText("" + 100 + "%");
-                progressBar.setProgress(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }*/
-        //
-    }
 }

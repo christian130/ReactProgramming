@@ -11,9 +11,10 @@ public class DataSource {
         List<Task> tasks = new ArrayList<Task>();
         tasks.add(new Task("description 0",true,3));
         tasks.add(new Task("description 1",false,2));
-        tasks.add(new Task("description 2",true,1));
+        tasks.add(new Task("description 2",false,1));
         tasks.add(new Task("description 3",false,0));
         tasks.add(new Task("description 4",true,5));
+        tasks.add(new Task("description 5",true,6));
         return tasks;
     }
 }
