@@ -1,6 +1,8 @@
 package com.christian130.rxjava.models;
 
-public class Task {
+import java.io.Serializable;
+
+public class Task implements Serializable {
     private String description;
     private boolean isComplete;
     private int priority;
