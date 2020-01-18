@@ -1,4 +1,4 @@
-# Index or Indice (whatever you want to name it/ como quieras llamarlo)
+# Index
 
 <!--ts-->
    * [English](#english)
