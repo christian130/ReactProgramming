@@ -8,3 +8,16 @@ This is named RxJava/RxAndroid which is the mixing of various design pattern whi
 
 
 This repository is only intended to be more precise in the motivation to learn the most advanced topic of android. To learn about the project which involves RXJava/RxAndroid, commonly there have been to be passed to a serious number of topics. **this is the most advanced topic which an android developer have to learn, over and over again**
+
+this is the first lesson where is the basics of RxJava... basically this is the initial
+https://github.com/christian130/ReactProgramming/tree/lesson01
+this is the second lesson where it combines some of the basics things of others things
+https://github.com/christian130/ReactProgramming/tree/lesson02
+this is the third lesson where it successfully combines Rx with a progressBar and a TextView that goes through a simple arraylisit and give them a Thread.sleep(3000)
+https://github.com/christian130/ReactProgramming/tree/lesson03
+this is four lesson that tries to combines the retrofit, the RxJava/RxAndroid, thus deleting the commonly callback that comes with the retrofit
+https://github.com/christian130/ReactProgramming/tree/lesson04
+
+![printscreen.png](https://raw.githubusercontent.com/christian130/ReactProgramming/lesson04/first_item.png)
+
+![printscreen.png](https://raw.githubusercontent.com/christian130/ReactProgramming/lesson04/second_item.png)
