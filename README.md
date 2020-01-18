@@ -40,10 +40,13 @@ este es la traduccion original al castellano de los commit realizados... existen
 
 # ReactProgramming
 esta es una implementación en android de
-`` `
+
+```
 implementación "io.reactivex.rxjava2: rxjava: 2.2.7"
 implementación "io.reactivex.rxjava2: rxandroid: 2.1.1"
-`` `
+```
+
+
 Esto se llama RxJava / RxAndroid, que es la mezcla de varios patrones de diseño, como el Observer y Subscriber(una parte de ella) más importante. Para mayor conocimiento, vaya al libro **design pattern in java**.
 
 
