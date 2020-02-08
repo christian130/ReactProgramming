@@ -1,4 +1,4 @@
-package com.christian130.rxsamples05;
+package com.christian130.rxsamples;
 
 import org.junit.Test;
 
