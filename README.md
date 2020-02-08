@@ -108,12 +108,12 @@ git checkout origen lección01
 # Ramas
 
 <!--ts-->
-- [Lección 01](#lecci&#xF3;-01)
-- [Lección 02](#lecci-n-02)
-- [Lección 03](#lecci-n-03)
-- [Lección 04](#lecci-n-04)
-- [Lección 05](#lecci-n-05)
-- [Lección 06](#lecci-n-06)
+- [Lección 01](#lecci&#xF3;n-01)
+- [Lección 02](#lecci&#xF3;n-02)
+- [Lección 03](#lecci&#xF3;n-03)
+- [Lección 04](#lecci&#xF3;n-04)
+- [Lección 05](#lecci&#xF3;n-05)
+- [Lección 06](#lecci&#xF3;n-06)
 - [Lección 07](#lecci&#xF3;n-07)
 <!--te-->
 
