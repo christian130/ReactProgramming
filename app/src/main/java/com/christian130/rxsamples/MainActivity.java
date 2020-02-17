@@ -25,13 +25,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Observable<DatosDummy> datosDummyObservable = Observable
                 .fromIterable(FuenteDeDatos.llenarLista())
-                .distinct(new Function<DatosDummy, String>() {
-
-                    @Override
-                    public String apply(DatosDummy datosDummy) throws Exception {
-                        return datosDummy.getDescripcion();
-                    }
-                })
+                .take(3)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
         datosDummyObservable.subscribe(new Observer<DatosDummy>() {
@@ -42,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNext(DatosDummy datosDummy) {
+                Log.d("imprimit",datosDummy.getDescripcion());
                 Log.d("no repetido","item dummy no repetido");
             }
 
