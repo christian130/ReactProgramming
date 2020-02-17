@@ -25,7 +25,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Observable<DatosDummy> datosDummyObservable = Observable
                 .fromIterable(FuenteDeDatos.llenarLista())
-                .take(3)
+                .takeWhile(new Predicate<DatosDummy>() {
+                    @Override
+                    public boolean test(DatosDummy datosDummy) throws Exception {
+                        return !Integer.valueOf(datosDummy.getImportancia()).equals(5);
+                    }
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
         datosDummyObservable.subscribe(new Observer<DatosDummy>() {
