@@ -4,103 +4,78 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 
-import com.christian130.rxsamples.DTO.local.SimplePOJO;
-import com.christian130.rxsamples.models.FunctionExtendidoPOJO;
-import com.christian130.rxsamples.models.FunctionExtendidoString;
-import com.christian130.rxsamples.models.FuenteDeDatos;
+import com.jakewharton.rxbinding3.view.RxView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.Disposables;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import kotlin.Unit;
 
 public class MainActivity extends AppCompatActivity {
-
-
-    private void cambiarString() {
-        Observable<String> simplePOJOObservable = Observable
-                .fromIterable(FuenteDeDatos.getAllDatosCableados())
-                .subscribeOn(Schedulers.io())
-                .map(new FunctionExtendidoString())
-                .observeOn(AndroidSchedulers.mainThread());
-        simplePOJOObservable.subscribe(new Observer<String>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(String s) {
-                Log.d("hilo", "estoy en el hilo de ejecucion" + Thread.currentThread().getName());
-                Log.d("el string filtrado es", s);
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
-    }
-
-    private void cambiarObjetos() {
-        Observable<SimplePOJO> simplePOJOObservable = Observable
-                .fromIterable(FuenteDeDatos.getAllDatosCableados())
-                .subscribeOn(Schedulers.io())
-                .map(new FunctionExtendidoPOJO())
-                .observeOn(AndroidSchedulers.mainThread());
-        simplePOJOObservable.subscribe(new Observer<SimplePOJO>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(SimplePOJO simplePOJO) {
-                Log.d("hilo ejecutor",Thread.currentThread().getName());
-                Log.d("simplePOJO",String.valueOf(simplePOJO.isConsumaton()));
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
-
-    }
+    private CompositeDisposable compositeDisposable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                cambiarString();
-            }
-        });
-        Button cambiarObjetos = (Button) findViewById(R.id.button2);
-        cambiarObjetos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                cambiarObjetos();
-            }
-        });
+        compositeDisposable = new CompositeDisposable();
+        Observable<Unit> integerObservable = RxView.clicks(findViewById(R.id.button2));
+        Observable<List<Integer>> listObservable = integerObservable
+                .map(new Function<Unit, Integer>() { // convert the detected clicks to an integer
+                    @Override
+                    public Integer apply(Unit unit) throws Exception {
+                        return 1;
+                    }
+                })//you are not allowed to subcribeOn any method to any Schedulers (computational or whatsoever)
+                .buffer(1, TimeUnit.SECONDS) // capture all the clicks during a 4 second interval
+                .observeOn(AndroidSchedulers.mainThread());
+        listObservable
+                .subscribe(new subscribtion());
 
+// do not subscribeOn to anything using the library suplied to detects clicks
+
+
+    }
+
+
+    public class subscribtion implements Observer<List<Integer>> {
+
+        @Override
+        public void onSubscribe(Disposable d) {
+            compositeDisposable.add(d);
+        }
+
+        @Override
+        public void onNext(List<Integer> integers) {
+            Log.d("clicks", "clicks " + String.valueOf(integers.size()));
+
+        }
+
+        @Override
+        public void onError(Throwable e) {
+
+        }
+
+        @Override
+        public void onComplete() {
+
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        compositeDisposable.clear();
     }
 }
