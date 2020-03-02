@@ -1,81 +1,149 @@
 package com.christian130.rxsamples;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
 
-import com.jakewharton.rxbinding3.view.RxView;
+import com.christian130.rxsamples.models.DTO.Comment;
+import com.christian130.rxsamples.models.DTO.Post;
+import com.christian130.rxsamples.models.adapters.MainRecylerAdapter;
+import com.christian130.rxsamples.models.requestImpl.SrvImplSrvIntAllDeclare;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.disposables.Disposables;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
-import kotlin.Unit;
 
 public class MainActivity extends AppCompatActivity {
-    private CompositeDisposable compositeDisposable;
-
+    private static final String TAG = "MainActivity";
+    private RecyclerView recyclerView;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private MainRecylerAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        compositeDisposable = new CompositeDisposable();
-        Observable<Unit> integerObservable = RxView.clicks(findViewById(R.id.button2));
-        Observable<List<Integer>> listObservable = integerObservable
-                .map(new Function<Unit, Integer>() { // convert the detected clicks to an integer
+        recyclerView = findViewById(R.id.recyclerview);
+        initRecyclerView();
+
+        getPostsObservable()
+                .subscribeOn(Schedulers.io())
+                .flatMap(new Function<Post, ObservableSource<Post>>() {
                     @Override
-                    public Integer apply(Unit unit) throws Exception {
-                        return 1;
+                    public ObservableSource<Post> apply(Post post) throws Exception {
+                        return getCommentsObservable(post);
                     }
-                })//you are not allowed to subcribeOn any method to any Schedulers (computational or whatsoever)
-                .buffer(1, TimeUnit.SECONDS) // capture all the clicks during a 4 second interval
-                .observeOn(AndroidSchedulers.mainThread());
-        listObservable
-                .subscribe(new subscribtion());
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Post>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        disposables.add(d);
+                    }
 
-// do not subscribeOn to anything using the library suplied to detects clicks
+                    @Override
+                    public void onNext(Post post) {
+                        updatePost(post);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError: ", e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.e(TAG, "completed: ");
+                    }
+                });
+
+
 
 
     }
+    private void updatePost(final Post p){
+        Observable
+                .fromIterable(adapter.getPosts())
+                .filter(new Predicate<Post>() {
+                    @Override
+                    public boolean test(Post post) throws Exception {
+                        return post.getId() == p.getId();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Post>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        disposables.add(d);
+                    }
 
+                    @Override
+                    public void onNext(Post post) {
+                        Log.d(TAG, "onNext: updating post: " + post.getId() + ", thread: " + Thread.currentThread().getName());
+                        adapter.updatePost(post);
+                    }
 
-    public class subscribtion implements Observer<List<Integer>> {
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError: ", e);
+                    }
 
-        @Override
-        public void onSubscribe(Disposable d) {
-            compositeDisposable.add(d);
-        }
-
-        @Override
-        public void onNext(List<Integer> integers) {
-            Log.d("clicks", "clicks " + String.valueOf(integers.size()));
-
-        }
-
-        @Override
-        public void onError(Throwable e) {
-
-        }
-
-        @Override
-        public void onComplete() {
-
-        }
+                    @Override
+                    public void onComplete() {
+                    }
+                });
     }
+    private Observable<Post> getCommentsObservable(final Post post){
+        return SrvImplSrvIntAllDeclare.getRequestApi()
+                .getAllComments(post.getId())
+                .map(new Function<List<Comment>, Post>() {
+                    @Override
+                    public Post apply(List<Comment> comments) throws Exception {
 
+                        int delay = ((new Random()).nextInt(5) + 1) * 1000; // sleep thread for x ms
+                        Thread.sleep(delay);
+                        Log.d(TAG, "apply: sleeping thread " + Thread.currentThread().getName() + " for " + String.valueOf(delay)+ "ms");
+
+                        post.setComments(comments);
+                        return post;
+                    }
+                })
+                .subscribeOn(Schedulers.io());
+
+    }
+    private Observable<Post> getPostsObservable(){
+        return SrvImplSrvIntAllDeclare.getRequestApi()
+                .getPosts()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap(new Function<List<Post>, ObservableSource<Post>>() {
+                    @Override
+                    public ObservableSource<Post> apply(final List<Post> posts) throws Exception {
+                        adapter.setPosts(posts);
+                        return Observable.fromIterable(posts)
+                                .subscribeOn(Schedulers.io());
+                    }
+                });
+    }
+    private void initRecyclerView(){
+        adapter = new MainRecylerAdapter();
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        compositeDisposable.clear();
+        disposables.clear();
     }
 }
