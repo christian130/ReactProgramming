@@ -31,6 +31,8 @@ public interface ImplSrvIntAll {
     @GET("posts")
     Observable<List<Post>> getPosts();
 
-    @GET("post/{id}/comments")
-    Observable<List<Comment>> getAllComments(@Path("id") int id);
+    @GET("posts/{id}")
+    Observable<Post> getPost(
+            @Path("id") int id
+    );
 }
