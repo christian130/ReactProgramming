@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         getPostsObservable()
                 .subscribeOn(Schedulers.io())
-                .concatMap(new Function<Post, ObservableSource<Post>>() {
+                .flatMap(new Function<Post, ObservableSource<Post>>() {
                     @Override
                     public ObservableSource<Post> apply(Post post) throws Exception {
                         return getCommentsObservable(post);
@@ -72,7 +72,34 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    private void updatePost(final Post p){
+
+    private void updatePost(Post post){
+        adapter.updatePost(post);
+    }
+    private Observable<Post> getCommentsObservable(final Post post){
+        return SrvImplSrvIntAllDeclare.getRequestApi()
+                .getOnePost(post.getId())
+                .map(new Function<List<Comment>, Post>() {
+                    @Override
+                    public Post apply(List<Comment> comments) throws Exception {
+
+                        int delay = ((new Random()).nextInt(5) + 1) * 1000; // sleep thread for x ms
+                        Thread.sleep(delay);
+                        Log.d(TAG, "apply: sleeping thread " + Thread.currentThread().getName() + " for " + String.valueOf(delay)+ "ms");
+
+                        post.setComments(comments);
+                        return post;
+                    }
+                })
+                .subscribeOn(Schedulers.io());
+
+    }
+    private void initRecyclerView(){
+        adapter = new MainRecylerAdapter();
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+    }
+    /*private void updatePost(final Post p){
         Observable
                 .fromIterable(adapter.getPosts())
                 .filter(new Predicate<Post>() {
@@ -103,20 +130,14 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete() {
                     }
                 });
-    }
+    }*/
     private Observable<Post> getCommentsObservable(final Post post){
         return SrvImplSrvIntAllDeclare.getRequestApi()
-                .getAllComments(post.getId())
-                .map(new Function<List<Comment>, Post>() {
+                .getOnePost(post.getId())
+                .map(new Function<Post, Post>() {
                     @Override
-                    public Post apply(List<Comment> comments) throws Exception {
-
-                        int delay = ((new Random()).nextInt(5) + 1) * 1000; // sleep thread for x ms
-                        Thread.sleep(delay);
-                        Log.d(TAG, "apply: sleeping thread " + Thread.currentThread().getName() + " for " + String.valueOf(delay)+ "ms");
-
-                        post.setComments(comments);
-                        return post;
+                    public Post apply(Post post) throws Exception {
+                        return null;
                     }
                 })
                 .subscribeOn(Schedulers.io());
@@ -136,11 +157,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
-    private void initRecyclerView(){
+    /*private void initRecyclerView(){
         adapter = new MainRecylerAdapter();
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
-    }
+    }*/
     @Override
     protected void onDestroy() {
         super.onDestroy();
