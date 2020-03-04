@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         getPostsObservable()
                 .subscribeOn(Schedulers.io())
-                .flatMap(new Function<Post, ObservableSource<Post>>() {
+                .concatMap(new Function<Post, ObservableSource<Post>>() {
                     @Override
                     public ObservableSource<Post> apply(Post post) throws Exception {
                         return getCommentsObservable(post);
